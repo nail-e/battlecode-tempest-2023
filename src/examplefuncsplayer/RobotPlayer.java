@@ -1,5 +1,6 @@
 package examplefuncsplayer;
 
+import Headquarters.HQ1;
 import LauncherStreategy.LS1;
 import battlecode.common.*;
 
@@ -28,10 +29,10 @@ public strictfp class RobotPlayer {
      * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
-    static final Random rng = new Random(6147);
+    public static final Random rng = new Random(6147);
 
     /** Array containing all the possible movement directions. */
-    static final Direction[] directions = {
+    public static final Direction[] directions = {
         Direction.NORTH,
         Direction.NORTHEAST,
         Direction.EAST,
@@ -50,7 +51,7 @@ public strictfp class RobotPlayer {
      *            information on its current status. Essentially your portal to interacting with the world.
      **/
     @SuppressWarnings("unused")
-    public static void run(RobotController rc) throws GameActionException {
+    public static void run(RobotController rc) throws GameActionException,RuntimeException {
 
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
@@ -73,9 +74,9 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     runHeadquarters(rc);  break;
+                    case HEADQUARTERS:     HQ1.runHeadquarters(rc);  break;
                     case CARRIER:      runCarrier(rc);   break;
-                    case LAUNCHER: LS1.runLauncher(rc); break;
+                    case LAUNCHER:      LS1.runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
                     case AMPLIFIER:       break;
@@ -137,7 +138,7 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Carrier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-    static void runCarrier(RobotController rc) throws GameActionException {
+    public static void runCarrier(RobotController rc) throws GameActionException {
         if (rc.getAnchor() != null) {
             // If I have an anchor singularly focus on getting it to the first island I see
             int[] islands = rc.senseNearbyIslands();

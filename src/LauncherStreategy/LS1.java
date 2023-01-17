@@ -10,7 +10,7 @@ import examplefuncsplayer.RobotPlayer;
 
 public class LS1 {
 
-    static void runLauncher(RobotController rc) throws GameActionException {
+    public static void runLauncher(RobotController rc) throws GameActionException {
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
