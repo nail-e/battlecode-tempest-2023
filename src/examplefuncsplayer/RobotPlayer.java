@@ -3,9 +3,7 @@ package examplefuncsplayer;
 import battlecode.common.*;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -86,7 +84,7 @@ public strictfp class RobotPlayer {
                 // this into a different control structure!
                 switch (rc.getType()) {
                     case HEADQUARTERS:     runHeadquarters(rc);  break;
-                    case CARRIER:      runCarrier(rc);   break;
+                    case CARRIER:      CarrierStrategy.runCarrier(rc);   break;
                     case LAUNCHER: runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
@@ -142,6 +140,11 @@ public strictfp class RobotPlayer {
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
             }
+        }
+    }
+    static void moveRandom(RobotController rc) throws GameActionException {
+        Direction dir = directions[rng.nextInt(directions.length)];
+        if (rc.canMove(dir)) rc.move(dir);
         }
     }
 
