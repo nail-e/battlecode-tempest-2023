@@ -27,7 +27,6 @@ public strictfp class RobotPlayer {
 
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
-
             Direction.NORTH,
             Direction.NORTHEAST,
             Direction.EAST,
@@ -69,8 +68,8 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     runHeadquarters(rc);  break;
-                    case CARRIER:      CarrierStrategy.runCarrier(rc);   break;
+                    case HEADQUARTERS: runHeadquarters(rc);  break;
+                    case CARRIER: CarrierStrategy.runCarrier(rc);   break;
                     case LAUNCHER: LauncherStrategy.runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
