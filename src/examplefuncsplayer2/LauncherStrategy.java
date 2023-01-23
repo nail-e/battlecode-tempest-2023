@@ -16,16 +16,40 @@ public class LauncherStrategy {
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length >= 0) {
-            MapLocation toAttack = enemies[0].location;
-            //  MapLocation toAttack = rc.getLocation().add(Direction.EAST);
-
-            if (rc.canAttack(toAttack)) {
-                rc.setIndicatorString("Attacking");
-                rc.attack(toAttack);
+        int lowestHealth = 100;
+        int smallestDistance = 100;
+        RobotInfo target = null;
+        if (enemies.length > 0) {
+            for (RobotInfo enemy : enemies) {
+                int enemyHealth = enemy.getHealth();
+                int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
+                if (enemyHealth < lowestHealth) {
+                    target = enemy;
+                    lowestHealth = enemyHealth;
+                    smallestDistance = enemyDistance;
+                }
+                else if (enemyHealth == lowestHealth) {
+                    if (enemyDistance < smallestDistance) {
+                        target = enemy;
+                        smallestDistance = enemyDistance;
+                    }
+                }
             }
         }
-
+        if (target != null) {
+            if (rc.canAttack(target.getLocation())) {
+                rc.attack(target.getLocation());
+            }
+        }
+        else {
+            WellInfo[] wells = rc.senseNearbyWells();
+            if (wells.length > 0) {
+                MapLocation wellLoc = wells[0].getMapLocation();
+                Direction dir = rc.getLocation().directionTo(wellLoc);
+                if (rc.canMove(dir))
+                    rc.move(dir);
+            }
+        }
         RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, opponent);
         for (RobotInfo enemy : visibleEnemies) {
             if(enemy.getType() != RobotType.HEADQUARTERS) {
