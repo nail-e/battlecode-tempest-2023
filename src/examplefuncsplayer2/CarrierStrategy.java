@@ -9,12 +9,17 @@ public class CarrierStrategy {
     static MapLocation islandLoc;
 
     static boolean anchorMode = false;
+    static int numHeadquarters = 0;
 
     /**
      * Run a single turn for a Carrier.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
     static void runCarrier(RobotController rc) throws GameActionException {
+        if (RobotPlayer.turnCount == 2) {
+            Communication.updateHeadquarterInfo(rc);
+        }
+
         if (hqLoc == null) scanHQ(rc);
         if (wellLoc == null) scanWells(rc);
 
@@ -34,7 +39,16 @@ public class CarrierStrategy {
 
         //If carrier has no resources, it will look for well
         if(anchorMode) {
-            if(islandLoc == null) RobotPlayer.moveRandom(rc);
+            if(islandLoc == null) {
+                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_STARTING_HEADQUARTERS)
+                    MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                    if (islandNearestLoc != null) {
+                        islandLoc = islandNearestLoc;
+                        break;
+                    }
+            }
+                RobotPlayer.moveRandom(rc);
+
             else RobotPlayer.moveTowards(rc, islandLoc);
 
             if(rc.canPlaceAnchor()) rc.placeAnchor();
@@ -54,6 +68,7 @@ public class CarrierStrategy {
                 RobotPlayer.moveTowards(rc, hqLoc);
             }
         }
+        Communication.tryWriteMessages(rc);
     }
 
     static void scanHQ(RobotController rc) throws GameActionException {
@@ -91,7 +106,7 @@ public class CarrierStrategy {
                         break;
                     }
                 }
+                Communication.updateIslandInfo(rc, id);
             }
         }
-
-}
+    }
