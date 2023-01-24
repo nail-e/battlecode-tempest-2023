@@ -1,19 +1,22 @@
 package examplefuncsplayer2;
-
+import java.util.ArrayList;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.*;
-import com.sun.tools.internal.ws.wsdl.document.Message;
 
-import java.util.ArrayList;
-import java.util.List;
+import static examplefuncsplayer2.Message.messagesQueue;
 
 class Message {
     public int idx;
     public int value;
     public int turnAdded;
+
+    //Very sexy bit stuff here
+    static ArrayList<Message> islandMessageQueue = new ArrayList<Message>();
+    static ArrayList<Message> messagesQueue = new ArrayList<>();
+
 
     Message (int idx, int value, int turnAdded) {
         this.idx = idx;
@@ -21,12 +24,12 @@ class Message {
         this.turnAdded = turnAdded;
     }
 }
-class Communication {
-
+public class Communication {
+    //sexy bit stuff 2: communication thing boogaloo
     private static final int OUTDATED_TURNS_AMOUNT = 30;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
 
-    //Maybe we should change this based on exact amounts of which we can get on turn 1
+    //Maybe we should change this based on exact amounts of which we can get on turn 1 -Shaun
     static final int STARTING_ISLAND_IDX = GameConstants.MAX_STARTING_HEADQUARTERS;
     private static final int STARTING_ENEMY_IDX = GameConstants.MAX_NUMBER_ISLANDS + GameConstants.MAX_STARTING_HEADQUARTERS;
 
@@ -35,9 +38,9 @@ class Communication {
     private static final int TEAM_BITS = 1;
     private static final int HEALTH_BITS = 3;
     private static final int HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
+    static RobotController rc;
+    private static final MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
 
-    private static List<Message> messagesQueue = new ArrayList<>();
-    private static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
 
     static void addHeadquarter(RobotController rc) throws GameActionException {
         MapLocation me = rc.getLocation();
@@ -52,7 +55,7 @@ class Communication {
     static void updateHeadquarterInfo(RobotController rc) throws GameActionException {
         if (RobotPlayer.turnCount == 2) {
             for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-                headquarterLocs[i] = (intToLocation(rc, rc.readSharedArray(i)));
+                headquarterLocs[i] = (intToLocation(rc.readSharedArray(i)));
                 if (rc.readSharedArray(i) == 0) {
                     break;
                 }
@@ -103,7 +106,7 @@ class Communication {
             int islandInt = rc.readSharedArray(islandId);
             int healthMask = 0b111;
             int health = islandInt & healthMask;
-            int team = (islandInt >> HEALTH_BITS) % 0b1;
+            int team = (islandInt >> HEALTH_BITS) & 0b1;
             if (health > 0) {
                 return Team.values()[team];
             }
@@ -115,11 +118,11 @@ class Communication {
         try {
             islandId = islandId + STARTING_ISLAND_IDX;
             int islandInt = rc.readSharedArray(islandId);
-            int islandLoc = islandInt >> (HEALTH_BITS + TEAM_BITS);
-            return intToLocation(rc, IslandLocIdx);
+            int islandLocIdx = islandInt >> (HEALTH_BITS + TEAM_BITS);
+            return intToLocation(islandLocIdx);
         } catch (GameActionException e) {return null;}
     }
-    static MapLocation readMaxIslandHealth(RobotController rc, int islandId) {
+    static int readMaxIslandHealth(RobotController rc, int islandId) {
         try {
             islandId = islandId + STARTING_ISLAND_IDX;
             int islandInt = rc.readSharedArray(islandId);
@@ -129,11 +132,15 @@ class Communication {
         } catch (GameActionException e) {return -1;}
     }
 
-    // static void clearObsoleteEnemies(RobotController rc) {
-        // for (int i = STARTING_ENEMY_IDX, i < GameConstants.SHARED_ARRAY_LENGTH; i++) {
-            // MapLocation enemy = intToLocation(rc, rc.readSharedArray(i));
-        //}
-    //}
+    static void clearObsoleteEnemies(RobotController rc) throws GameActionException {
+        for (int i = STARTING_ENEMY_IDX; i < GameConstants.SHARED_ARRAY_LENGTH; i++) {
+            MapLocation enemyLoc = intToLocation(rc.readSharedArray(i));
+            if (enemyLoc == null)
+                continue;
+            if (!rc.canSenseLocation(enemyLoc))
+                continue; //placeholder code
+            }
+        }
 
     static void reportEnemy(RobotController rc, MapLocation enemy) {
 
@@ -150,11 +157,13 @@ class Communication {
         return 1 + m.x + m.y * rc.getMapWidth();
     }
 
-    private static MapLocation intToLocation(RobotController rc, int m) {
+    private static MapLocation intToLocation(int m) {
         if (m == 0) {
             return null;
         }
         m--;
-        return new MapLocation(m % rc.getMapWidth(), m / rc.getMapWidth());
+        return new MapLocation(m % rc.getMapWidth(), m / rc.getMapWidth()); //FIX THIS ELIAN
+        //NVM I FIXED IT WOO
+        //fn: make sure u fuckin put the instatiation in the same class
     }
 }
