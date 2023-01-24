@@ -7,6 +7,9 @@ import battlecode.common.RobotController;
 import battlecode.common.*;
 import com.sun.tools.internal.ws.wsdl.document.Message;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class Message {
     public int idx;
     public int value;
@@ -39,7 +42,7 @@ class Communication {
     static void addHeadquarter(RobotController rc) throws GameActionException {
         MapLocation me = rc.getLocation();
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-            if (rc.readSharedArray(i) = 0) {
+            if (rc.readSharedArray(i) == 0) {
                 rc.writeSharedArray(i, locationToInt(rc, me));
                 break;
             }
@@ -74,7 +77,7 @@ class Communication {
         MapLocation [] islandLocations = rc.senseNearbyIslandLocations(null, -1, id);
         if (islandLocations.length > 0) {
             int idx_to_write = id + STARTING_ISLAND_IDX;
-            int value = locationToInt(rc, islandLocations[0])
+            int value = locationToInt(rc, islandLocations[0]);
             if (value != rc.readSharedArray(idx_to_write)) {
                 rc.canWriteSharedArray(idx_to_write, value);
             }
@@ -86,7 +89,7 @@ class Communication {
         intIsland = intIsland << (TOTAL_BITS - MAPLOC_BITS);
         try {
             Team team = rc.senseTeamOccupyingIsland(islandId);
-            intIsland += team.ordinal() << HEALTH_BITS
+            intIsland += team.ordinal() << HEALTH_BITS;
             int health = rc.senseAnchorPlantedHealth(islandId);
             intIsland += (int) Math.round((float) health / HEALTH_SIZE);
             return intIsland;
@@ -122,7 +125,7 @@ class Communication {
             int islandInt = rc.readSharedArray(islandId);
             int healthMask = 0b111;
             int health = islandInt & healthMask;
-            return health
+            return health;
         } catch (GameActionException e) {return -1;}
     }
 
@@ -147,7 +150,7 @@ class Communication {
         return 1 + m.x + m.y * rc.getMapWidth();
     }
 
-    private static MapLocation intToLocation(RobotController rc, MapLocation m) {
+    private static MapLocation intToLocation(RobotController rc, int m) {
         if (m == 0) {
             return null;
         }
