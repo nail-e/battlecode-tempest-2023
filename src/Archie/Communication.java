@@ -1,5 +1,4 @@
 package Archie;
-import java.awt.*;
 import java.util.ArrayList;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -13,18 +12,13 @@ class Message {
     public int value;
     public int turnAdded;
 
-    //Very sexy bit stuff here
-    static ArrayList<Message> islandMessageQueue = new ArrayList<Message>();
-    static ArrayList<Message> messagesQueue = new ArrayList<>();
-
-
     Message (int idx, int value, int turnAdded) {
         this.idx = idx;
         this.value = value;
         this.turnAdded = turnAdded;
     }
 }
-public class Communication {
+class Communication {
     //sexy bit stuff 2: communication thing boogaloo
     private static final int OUTDATED_TURNS_AMOUNT = 30;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
@@ -39,8 +33,8 @@ public class Communication {
     private static final int HEALTH_BITS = 3;
     private static final int HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
 
-    private static List messagesQueue = new List();
-    private static final MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
+    private static List<Message> messagesQueue = new ArrayList<>();
+    private static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
 
 
     static void addHeadquarter(RobotController rc) throws GameActionException {
@@ -56,7 +50,7 @@ public class Communication {
     static void updateHeadquarterInfo(RobotController rc) throws GameActionException {
         if (RobotPlayer.turnCount == 2) {
             for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-                headquarterLocs[i] = (intToLocation(rc.readSharedArray(i)));
+                headquarterLocs[i] = (intToLocation(rc, rc.readSharedArray(i)));
                 if (rc.readSharedArray(i) == 0) {
                     break;
                 }
@@ -133,15 +127,15 @@ public class Communication {
         } catch (GameActionException e) {return -1;}
     }
 
-    static void clearObsoleteEnemies(RobotController rc) throws GameActionException {
-        for (int i = STARTING_ENEMY_IDX; i < GameConstants.SHARED_ARRAY_LENGTH; i++) {
-            MapLocation enemyLoc = intToLocation(rc.readSharedArray(i));
-            if (enemyLoc == null)
-                continue;
-            if (!rc.canSenseLocation(enemyLoc))
-                continue; //placeholder code
-            }
-        }
+    // static void clearObsoleteEnemies(RobotController rc) throws GameActionException {
+        // for (int i = STARTING_ENEMY_IDX; i < GameConstants.SHARED_ARRAY_LENGTH; i++) {
+            // MapLocation enemyLoc = intToLocation(rc.readSharedArray(i));
+            // if (enemyLoc == null)
+                // continue;
+            // if (!rc.canSenseLocation(enemyLoc))
+                // continue; //placeholder code
+            // }
+        // }
 
     static void reportEnemy(RobotController rc, MapLocation enemy) {
 

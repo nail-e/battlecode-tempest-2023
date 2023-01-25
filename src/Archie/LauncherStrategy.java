@@ -2,9 +2,6 @@ package Archie;
 
 import battlecode.common.*;
 
-import java.awt.*;
-import java.util.Map;
-
 public class LauncherStrategy {
 
     /**

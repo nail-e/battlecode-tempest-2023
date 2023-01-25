@@ -40,7 +40,7 @@ public class CarrierStrategy {
         //If carrier has no resources, it will look for well
         if (anchorMode) {
             if (islandLoc == null) {
-                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.CARRIER_CAPACITY; ) {
+                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_STARTING_HEADQUARTERS; ) {
                     MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
                     if (islandNearestLoc != null) {
                         islandLoc = islandNearestLoc;
