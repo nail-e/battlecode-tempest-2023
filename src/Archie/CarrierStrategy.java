@@ -26,13 +26,11 @@ public class CarrierStrategy {
         scanIslands(rc);
 
         // Collects from the well if it is close and our inventory is not full
-        if(wellLoc != null && rc.canCollectResource(wellLoc,-1)) rc.collectResource(wellLoc, -1);
+        if (wellLoc != null && rc.canCollectResource(wellLoc, -1)) rc.collectResource(wellLoc, -1);
 
         //Transfers resources to headquarters
         depositResource(rc, ResourceType.ADAMANTIUM);
         depositResource(rc, ResourceType.MANA);
-
-        int total = getTotalResources(rc);
 
         if (rc.canTakeAnchor(hqLoc, Anchor.STANDARD)) {
             rc.takeAnchor(hqLoc, Anchor.STANDARD);
@@ -40,21 +38,21 @@ public class CarrierStrategy {
         }
 
         //If carrier has no resources, it will look for well
-        if(anchorMode) {
-            if(islandLoc == null) {
-                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.CARRIER_CAPACITY;)
-                    // MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-                    if (Communication.islandNearestLoc != null) {
+        if (anchorMode) {
+            if (islandLoc == null) {
+                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.CARRIER_CAPACITY; ) {
+                    MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                    if (islandNearestLoc != null) {
                         islandLoc = islandNearestLoc;
                         break;
                     }
                 }
-            }
-            else Pathing.moveTowards(rc, islandLoc);
+            } else Pathing.moveTowards(rc, islandLoc);
 
-        if(rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == Team.NEUTRAL){
-            rc.placeAnchor();
-            anchorMode = false;
+            if (rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == Team.NEUTRAL) {
+                rc.placeAnchor();
+                anchorMode = false;
+            }
         }
         else {
             int total = getTotalResources(rc);
@@ -71,37 +69,37 @@ public class CarrierStrategy {
         Communication.tryWriteMessages(rc);
     }
 
-    static void scanHQ(RobotController rc) throws GameActionException {
+    static void scanHQ (RobotController rc) throws GameActionException {
         RobotInfo[] robots = rc.senseNearbyRobots();
-        for(RobotInfo robot : robots) {
-            if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
+        for (RobotInfo robot : robots) {
+            if (robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
                 hqLoc = robot.getLocation();
                 break;
             }
         }
     }
 
-    static void scanWells(RobotController rc) throws GameActionException {
+    static void scanWells (RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 0) wellLoc = wells[0].getMapLocation();
     }
-    static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
+    static void depositResource (RobotController rc, ResourceType type) throws GameActionException {
         int amount = rc.getResourceAmount(type);
         if (amount > 0) {
             if (rc.canTransferResource(hqLoc, type, amount)) rc.transferResource(hqLoc, type, amount);
         }
     }
 
-    static int getTotalResources(RobotController rc) {
+    static int getTotalResources (RobotController rc) {
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA);
     }
 
-    static void scanIslands(RobotController rc) throws GameActionException {
+    static void scanIslands (RobotController rc) throws GameActionException {
         int[] ids = rc.senseNearbyIslands();
         for (int id : ids) {
-            if(rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL) {
+            if (rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL) {
                 MapLocation[] locs = rc.senseNearbyIslandLocations(id);
-                if(locs.length > 0) {
+                if (locs.length > 0) {
                     islandLoc = locs[0];
                     break;
                 }
@@ -110,3 +108,4 @@ public class CarrierStrategy {
         }
     }
 }
+

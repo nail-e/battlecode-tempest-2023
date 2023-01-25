@@ -1,12 +1,12 @@
 package Archie;
+import java.awt.*;
 import java.util.ArrayList;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.*;
-
-import static Archie.Message.messagesQueue;
+import java.awt.List;
 
 class Message {
     public int idx;
@@ -38,7 +38,8 @@ public class Communication {
     private static final int TEAM_BITS = 1;
     private static final int HEALTH_BITS = 3;
     private static final int HEALTH_SIZE = (int) Math.ceil(Anchor.ACCELERATING.totalHealth / 8.0);
-    static RobotController rc;
+
+    private static List messagesQueue = new List();
     private static final MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
 
 
@@ -157,7 +158,7 @@ public class Communication {
         return 1 + m.x + m.y * rc.getMapWidth();
     }
 
-    private static MapLocation intToLocation(int m) {
+    private static MapLocation intToLocation(RobotController rc, int m) {
         if (m == 0) {
             return null;
         }
