@@ -1,4 +1,4 @@
-package examplefuncsplayer2;
+package Archie;
 
 import battlecode.common.*;
 

@@ -1,6 +1,7 @@
-package examplefuncsplayer2;
+package Archie;
 
 import battlecode.common.*;
+import battlecode.common.MapLocation;
 
 public class CarrierStrategy {
 
@@ -22,6 +23,7 @@ public class CarrierStrategy {
 
         if (hqLoc == null) scanHQ(rc);
         if (wellLoc == null) scanWells(rc);
+        scanIslands(rc);
 
         // Collects from the well if it is close and our inventory is not full
         if(wellLoc != null && rc.canCollectResource(wellLoc,-1)) rc.collectResource(wellLoc, -1);
@@ -40,15 +42,15 @@ public class CarrierStrategy {
         //If carrier has no resources, it will look for well
         if(anchorMode) {
             if(islandLoc == null) {
-                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_STARTING_HEADQUARTERS;)
-                    MapLocation [] islandNearestLoc = Communication.readIslandLocation(rc, i);
-                if (islandNearestLoc != null) {
-                    islandLoc = islandNearestLoc;
-                    break;
+                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.CARRIER_CAPACITY;)
+                    // MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                    if (Communication.islandNearestLoc != null) {
+                        islandLoc = islandNearestLoc;
+                        break;
+                    }
                 }
             }
-        }
-        else Pathing.moveTowards(rc, islandLoc);
+            else Pathing.moveTowards(rc, islandLoc);
 
         if(rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == Team.NEUTRAL){
             rc.placeAnchor();

@@ -1,4 +1,4 @@
-package projects1;
+package Archie;
 import java.util.Scanner;
 
 public class VectorMagnitude{

@@ -1,4 +1,4 @@
-package examplefuncsplayer2;
+package Archie;
 import java.util.ArrayList;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -6,7 +6,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.*;
 
-import static examplefuncsplayer2.Message.messagesQueue;
+import static Archie.Message.messagesQueue;
 
 class Message {
     public int idx;
@@ -119,7 +119,7 @@ public class Communication {
             islandId = islandId + STARTING_ISLAND_IDX;
             int islandInt = rc.readSharedArray(islandId);
             int islandLocIdx = islandInt >> (HEALTH_BITS + TEAM_BITS);
-            return intToLocation(islandLocIdx);
+            return intToLocation(rc, islandLocIdx);
         } catch (GameActionException e) {return null;}
     }
     static int readMaxIslandHealth(RobotController rc, int islandId) {
