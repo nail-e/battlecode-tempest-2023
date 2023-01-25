@@ -31,7 +31,7 @@ public class OptimalResource {
         int curCD = 0;
         while (curDistance != distance){
             if (curCD < 10){
-             curDistance += increment
+             curDistance += increment;
              curCD += cooldown;
             }
             else{
