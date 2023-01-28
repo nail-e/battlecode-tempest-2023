@@ -1,7 +1,6 @@
 package Barry;
 
 import battlecode.common.*;
-import Barry.*;
 
 // Boosters Code
 public class Booster {
