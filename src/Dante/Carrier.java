@@ -2,132 +2,107 @@ package Dante;
 
 import battlecode.common.*;
 
-public class Carrier extends Robot {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-    int actionRadius;
-    boolean shouldMove = true;
-    int profitTurns = 0;
-    int myID;
+import static Dante.Communication.*;
+import static Dante.RobotPlayer.attackingTypes;
+import static Dante.RobotPlayer.maxCarriersPerArea;
 
-    MapLocation wellLoc;
+public class Carrier {
 
+    static MapLocation wellLoc;
+    static MapLocation hqLoc;
+    static MapLocation islandLoc;
 
-    Carrier(RobotController rc){
-        super(rc);
-        actionRadius = rc.getType().actionRadiusSquared;
-        myID = rc.getID();
-        checkBehavior();
-    }
+    static boolean anchorMode = false;
 
-    void play(){
-        tryMine();
-        moveToTarget();
-        tryMine();
-    }
+    static void runCarrier(RobotController rc) throws GameActionException {
+        if (wellLoc == null) scanWells(rc);
+        if (wellLoc != null && rc.canCollectResource(wellLoc, -1)) rc.collectResource(wellLoc, -1);
+        scanIslands(rc);
 
-    void checkBehavior(){
-        try {
-            int minerIndex = rc.readSharedArray(comm.CARRIER_COUNT);
-            if (minerIndex%2 == 0) explore.setChecker(minerIndex/2);
-            comm.increaseIndex(comm.CARRIER_COUNT, 1);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    void moveToTarget(){
-        if (!rc.isMovementReady()) return;
-        MapLocation loc = getTarget();
-        bfs.move(loc);
-    }
-
-    MapLocation getTarget(){
-        if (!shouldMove) return rc.getLocation();
-        MapLocation loc = getClosestGold();
-        if (loc != null) return loc;
-        loc = getClosestLead();
-        if (loc == null) return explore.getExploreTarget(false);
-        return loc;
-    }
-
-    MapLocation getClosestLead(){
-        MapLocation ans = explore.getClosestLead();
-        if (ans == null) ans = comm.getClosestLead();
-        ans = adapt(ans);
-        return ans;
-    }
-
-    MapLocation adapt(MapLocation leadLoc){
-        try {
-            if (leadLoc == null) return null;
-            if (!rc.canSenseLocation(leadLoc)) return leadLoc;
-            MapLocation ans = null;
-            int bestRubble = 0;
-            for (int i = 9; i-- > 0; ) {
-                Direction dir = directions[i];
-                MapLocation newLoc = leadLoc.add(dir);
-                if (rc.canSenseLocation(newLoc) && rc.onTheMap(newLoc)) {
-                    RobotInfo ri = rc.senseRobotAtLocation(newLoc);
-                    if (ri != null && ri.getID() != myID) continue;
-                    int r = rc.senseRubble(newLoc);
-                    if (ans == null || r < bestRubble){
-                        bestRubble = r;
-                        ans = newLoc;
+        if (anchorMode) {
+            if (islandLoc == null) {
+                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
+                    MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                    if (islandNearestLoc != null) {
+                        islandLoc = islandNearestLoc;
+                        break;
                     }
                 }
+            } else RobotPlayer.moveTowards(rc, islandLoc);
+
+            if (rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == Team.NEUTRAL) {
+                rc.placeAnchor();
+                anchorMode = false;
             }
-            if (ans != null) return ans;
-        } catch (Exception e){
-            e.printStackTrace();
+        } else {
+            int total = getTotalResources(rc);
+            if (total == 0) {
+                //move towards well or search for well
+                if (wellLoc == null) RobotPlayer.moveRandom(rc);
+                else if (!rc.getLocation().isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+            }
+            if (total == GameConstants.CARRIER_CAPACITY) {
+                //move towards HQ
+                RobotPlayer.moveTowards(rc, hqLoc);
+            }
         }
-        return leadLoc;
+
+        depositResource(rc, ResourceType.ADAMANTIUM);
+        depositResource(rc, ResourceType.MANA);
+
+        boolean enemyHeadquarters = false;
+        boolean headquarters = false;
+        for (RobotInfo robot : rc.senseNearbyRobots(20, rc.getTeam()))
+            if (robot.getType().equals(RobotType.HEADQUARTERS)) {
+                headquarters = true;
+                break;
+            }
+        for (RobotInfo robot : rc.senseNearbyRobots(20, rc.getTeam().opponent()))
+            if (robot.getType().equals(RobotType.HEADQUARTERS)) {
+                enemyHeadquarters = true;
+                break;
+            }
+        if (rc.getHealth() < 10 && !headquarters) MoveToHeadquarters(rc);
+        if (rc.senseNearbyRobots().length > maxCarriersPerArea) explore(rc);
+        for (RobotInfo robot : rc.senseNearbyRobots(20, rc.getTeam().opponent())) {
+            AddLauncherDestination(rc, robot.getLocation());
+            if (Arrays.asList(attackingTypes).contains(robot.type) && rc.canMove(rc.getLocation().directionTo(robot.getLocation()).opposite()))
+                rc.move(rc.getLocation().directionTo(robot.getLocation()).opposite());
+        }
     }
 
-    void scanWells(RobotController rc) throws GameActionException {
+    static void scanWells(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
-        if(wells.length > 0) wellLoc = wells[0].getMapLocation();
+        if (wells.length > 0) wellLoc = wells[ 0 ].getMapLocation();
     }
-    void tryMine(){
-        if (!rc.isActionReady()) return;
-        try {
-            WellInfo[] adamantiumLocs = rc.senseNearbyWells(actionRadius, ResourceType.ADAMANTIUM);
-            for (MapLocation loc : adamantiumLocs){
-                while (rc.canCollectResource(loc,-1)){
-                    rc.collectResource(loc, -1);
-                }
-            }
 
-            MapLocation[] leadLocs = rc.senseNearbyLocationsWithLead(actionRadius);
-            boolean aggro = comm.shouldMineAggressively();
-            for (MapLocation loc : leadLocs){
-                boolean isEnemy = aggro && comm.isEnemyTerritory(loc);
-                int lead = rc.senseLead(loc);
-                if (!isEnemy && lead <= 1) continue;
-                while (rc.canMineLead(loc)){
-                    rc.mineLead(loc);
-                    lead--;
-                    if (!isEnemy && lead <= 1) break;
-                }
-            }
-
-        } catch (Exception e){
-            e.printStackTrace();
+    static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
+        int amount = rc.getResourceAmount(type);
+        if (amount > 0) {
+            if (rc.canTransferResource(hqLoc, type, amount)) rc.transferResource(hqLoc, type, amount);
         }
     }
 
-    MapLocation getClosestGold(){
-        MapLocation[] locs = rc.senseNearbyLocationsWithGold();
-        MapLocation ans = null;
-        int minDist = 0;
-        MapLocation myLoc = rc.getLocation();
-        for (MapLocation loc : locs){
-            int d =myLoc.distanceSquaredTo(loc);
-            if (ans == null || d < minDist){
-                ans = loc;
-                minDist = d;
-            }
-        }
-        return ans;
+    static int getTotalResources(RobotController rc) {
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM)
+                + rc.getResourceAmount(ResourceType.MANA)
+                + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
+    static void scanIslands(RobotController rc) throws GameActionException {
+        int[] ids = rc.senseNearbyIslands();
+        for (int id : ids) {
+            if (rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL) {
+                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
+                if (locs.length > 0) {
+                    islandLoc = locs[ 0 ];
+                    break;
+                }
+            }
+        }
+    }
 }

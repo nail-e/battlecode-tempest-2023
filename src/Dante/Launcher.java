@@ -1,47 +1,26 @@
 package Dante;
 
 import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
-public class Launcher extends Attacker {
+import static Dante.Communication.*;
+import static Dante.Destabilizer.AttackLowestHealth;
 
-    boolean explorer = false;
+public class Launcher {
 
-    Launcher(RobotController rc){
-        super(rc);
-        checkExploreBehavior();
-    }
+    static void runLauncher(RobotController rc) throws GameActionException {
 
-    void play() throws GameActionException{
-        checkChickenBehavior();
-        tryAttack(true);
-        tryMove();
-        tryAttack(false);
-    }
-
-    void checkExploreBehavior(){
-        try {
-            int soldierIndex = rc.readSharedArray(comm.LAUNCHER_COUNT);
-            if (soldierIndex%3 == 2) explorer = true;
-            comm.increaseIndex(comm.LAUNCHER_COUNT, 1);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    void tryMove() throws GameActionException {
-        if (!rc.isMovementReady()) return;
-        MapLocation target = getTarget();
-        bfs.move(target);
-    }
-
-    MapLocation getTarget() throws GameActionException{
-        if (rc.getRoundNum() < Constants.ATTACK_TURN && comm.isEnemyTerritoryRadial(rc.getLocation())) return comm.getClosestAllyArchon();
-        MapLocation ans = getBestTarget();
-        if (ans != null) return ans;
-        ans = comm.getClosestEnemyArchon();
-        if (ans != null) return ans;
-        return explore.getExploreTarget(true);
+        boolean headquarters = false;
+        for (RobotInfo robot : rc.senseNearbyRobots(20, rc.getTeam()))
+            if(robot.getType().equals(RobotType.HEADQUARTERS)) {
+                headquarters = true;
+                break;
+            }
+        AttackLowestHealth(rc);
+        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+        if (rc.getHealth() < 10 && !headquarters) MoveToHeadquarters(rc);
+        else if (enemies.length > 0) MoveBestIsland(rc);
+        else if (GetAllLauncherDestinations(rc).length > 0) MoveToTarget(rc);
+        else explore(rc);
     }
 }
